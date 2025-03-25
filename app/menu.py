@@ -1,6 +1,11 @@
 import os
+import csv
 import tkinter as tk
+import MeCab
+import ipadic
 from tkinter import filedialog
+from janome.tokenizer import Tokenizer
+from collections import Counter
 
 def create_menu(
     root,
@@ -52,20 +57,74 @@ def create_menu(
     menu_preprocess = tk.Menu(menubar, tearoff=0)
 
     def run_preprocess():
+        # MeCabの初期化
+
+        dic_path = ipadic.DICDIR.replace("\\", "/")
+        mecab = MeCab.Tagger("-d " + dic_path)
+
         content = text_area.get("1.0", "end").strip()
         if not content:
             print("テキストが空です")
             return
 
-        words = content.split()
+        # ターゲットとする品詞（変更なし）
+        target_pos = {
+            '名詞': {'一般', '固有名詞', 'サ変接続'},
+            '動詞': {'自立'},
+            '形容詞': {'自立'},
+            '副詞': {'一般'}
+        }
+
+        words = []
+        node = mecab.parseToNode(content)
+
+        # 名詞連結用の一時バッファ
+        compound_buffer = []
+
+        while node:
+            features = node.feature.split(',')
+            pos = features[0]
+            sub_pos = features[1] if len(features) > 1 else ''
+            base_form = features[6] if len(features) > 6 else node.surface
+
+            if pos == '名詞' and sub_pos in {'一般', '固有名詞', 'サ変接続'}:
+                compound_buffer.append(base_form)
+            else:
+                if len(compound_buffer) > 1:
+                    words.append(''.join(compound_buffer))  # 複合語として追加
+                elif len(compound_buffer) == 1:
+                    words.append(compound_buffer[0])  # 単独名詞
+                compound_buffer = []
+
+                # 複合語以外もターゲットなら追加
+                if pos in target_pos and sub_pos in target_pos[pos]:
+                    words.append(base_form)
+
+            node = node.next
+
+        # バッファに残ってた場合
+        if compound_buffer:
+            if len(compound_buffer) > 1:
+                words.append(''.join(compound_buffer))
+            else:
+                words.append(compound_buffer[0])
+
         total = len(words)
         unique = len(set(words))
         sentences = content.count("。")
-        paragraphs = content.count("\n\n") + 1
+        paragraphs = len([p for p in content.splitlines() if p.strip() != ""])
 
         total_words_label.configure(text=f"総抽出語数（使用）：{total} ({int(total*0.47)})")
         unique_words_label.configure(text=f"異なり語数（使用）：{unique} ({int(unique*0.73)})")
         simple_stats_label.configure(text=f"文書の単純集計：文 {sentences} ／段落 {paragraphs}")
+
+        # CSVエクスポート
+        word_counts = Counter(words)
+        with open("texttools_output.csv", "w", newline='', encoding="utf-8-sig") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["単語", "出現回数"])
+            for word, count in word_counts.most_common():
+                writer.writerow([word, count])
 
     menu_preprocess.add_command(label='前処理の実行', command=run_preprocess)
 
