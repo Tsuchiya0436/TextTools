@@ -19,9 +19,11 @@ def main():
     project_name_label = ctk.CTkLabel(project_frame, text='（未選択）')
     project_name_label.grid(row=0, column=1, sticky='w', padx=5, pady=5)
 
-    ctk.CTkLabel(project_frame, text='説明（メモ）').grid(row=1, column=0, sticky='w', padx=5, pady=5)
-    memo_entry = ctk.CTkEntry(project_frame, width=400)
-    memo_entry.grid(row=1, column=1, sticky='w', padx=5, pady=5)
+    # プロジェクトメモの表示
+    ctk.CTkLabel(project_frame, text='メモ：').grid(row=2, column=0, sticky='w', padx=5, pady=5)
+    memo_label = ctk.CTkLabel(project_frame, text='（なし）')
+    memo_label.grid(row=2, column=1, sticky='w', padx=5, pady=5)
+
 
     # ===== Database Statsセクション =====
     ctk.CTkLabel(root, text="Database Stats", font=("Arial", 16, "bold")).pack(padx=10, anchor="w")
@@ -88,7 +90,8 @@ def main():
         project_name_label,
         total_words_label,
         unique_words_label,
-        simple_stats_label
+        simple_stats_label,
+        memo_label
     )
     root.configure(menu=menubar)
 
