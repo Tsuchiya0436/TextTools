@@ -4,8 +4,13 @@ import tkinter as tk
 import MeCab
 import ipadic
 from tkinter import filedialog
+import tkinter.messagebox as messagebox
 from janome.tokenizer import Tokenizer
 from collections import Counter
+from ui.new_project_dialog import NewProjectDialog
+from ui.project_manager_dialog import ProjectManagerDialog
+from utils.project_storage import save_project_info, load_projects
+from logic.project_actions import new_project
 
 def create_menu(
     root,
@@ -13,33 +18,52 @@ def create_menu(
     project_name_label,
     total_words_label,
     unique_words_label,
-    simple_stats_label
+    simple_stats_label,
+    memo_label
 ):
     menubar = tk.Menu(root)
 
     # ===== プロジェクトメニュー =====
     menu_project = tk.Menu(menubar, tearoff=0)
 
-    def new_project():
-        text_area.delete("1.0", "end")
-        project_name_label.configure(text="（未選択）")
-        total_words_label.configure(text="総抽出語数（使用）：- (-)")
-        unique_words_label.configure(text="異なり語数（使用）：- (-)")
-        simple_stats_label.configure(text="文書の単純集計：文 - ／段落 -")
+    def open_project():
+        projects = load_projects()
+        if not projects:
+            print("保存されたプロジェクトがありません")
+            return
 
-    def open_file():
-        filepath = filedialog.askopenfilename(
-            title='プロジェクトを開く',
-            filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')]
+        def on_project_selected(proj):
+            try:
+                with open(proj["filepath"], "r", encoding="utf-8") as f:
+                    content = f.read()
+                    text_area.delete("1.0", "end")
+                    text_area.insert("1.0", content)
+
+                    filename = os.path.basename(proj["filepath"])
+                    project_name_label.configure(text=filename)
+
+                    # メモ表示
+                    memo_label.configure(text=proj.get("memo", ""))
+
+                    # 統計リセット
+                    total_words_label.configure(text="総抽出語数（使用）：- (-)")
+                    unique_words_label.configure(text="異なり語数（使用）：- (-)")
+                    simple_stats_label.configure(text="文書の単純集計：文 - ／段落 -")
+            except Exception as e:
+                print("読み込みに失敗:", e)
+
+        ProjectManagerDialog(
+            root,
+            projects,
+            on_project_selected,
+            current_filename=project_name_label.cget("text"),
+            text_area=text_area,
+            project_name_label=project_name_label,
+            total_words_label=total_words_label,
+            unique_words_label=unique_words_label,
+            simple_stats_label=simple_stats_label,
+            memo_label=memo_label
         )
-        if filepath:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                content = f.read()
-                text_area.delete("1.0", "end")
-                text_area.insert("1.0", content)
-
-                filename = os.path.basename(filepath)
-                project_name_label.configure(text=filename)
 
     def close_project():
         project_name_label.configure(text="（未選択）")
@@ -47,8 +71,18 @@ def create_menu(
         unique_words_label.configure(text="異なり語数（使用）：- (-)")
         simple_stats_label.configure(text="文書の単純集計：文 - ／段落 -")
 
-    menu_project.add_command(label='新規', accelerator='Ctrl+N', command=new_project)
-    menu_project.add_command(label='開く', accelerator='Ctrl+O', command=open_file)
+    menu_project.add_command(label='新規',
+                             accelerator='Ctrl+N',
+                             command=lambda: new_project(root,
+                                                         text_area,
+                                                         project_name_label,
+                                                         memo_label,
+                                                         total_words_label,
+                                                         unique_words_label,
+                                                         simple_stats_label
+                                                         )
+)
+    menu_project.add_command(label='開く', accelerator='Ctrl+O', command=open_project)
     menu_project.add_command(label='閉じる', accelerator='Ctrl+W', command=close_project)
     menu_project.add_separator()
     menu_project.add_command(label='終了', accelerator='Ctrl+Q', command=root.quit)
@@ -139,7 +173,7 @@ def create_menu(
 
     # ===== ショートカットキー =====
     root.bind_all('<Control-n>', lambda e: new_project())
-    root.bind_all('<Control-o>', lambda e: open_file())
+    root.bind_all('<Control-o>', lambda e: open_project())
     root.bind_all('<Control-q>', lambda e: root.quit())
 
     return menubar
