@@ -5,5 +5,12 @@
     "memo": "改訂版：実験用テキストファイルです",
     "language": "日本語",
     "parser": "MeCab"
+  },
+  {
+    "filename": "test_text_check.txt",
+    "filepath": "C:/Users/long0/Application/customtkinter_sandbox/test_text_check.txt",
+    "memo": "チェック機能確認ファイル",
+    "language": "日本語",
+    "parser": "MeCab"
   }
 ]

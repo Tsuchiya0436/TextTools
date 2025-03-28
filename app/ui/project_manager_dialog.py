@@ -64,11 +64,11 @@ class ProjectManagerDialog(ctk.CTkToplevel):
         btn_frame.columnconfigure(1, weight=1)
         btn_frame.columnconfigure(2, weight=1)
 
-        # 🔹 左寄せ（削除）
+        # 左寄せ（削除）
         delete_btn = ctk.CTkButton(btn_frame, text="削除", width=80, command=self.delete_project)
         delete_btn.grid(row=0, column=0, sticky="w", padx=(0, 10))
 
-        # 🔹 中央（新規・編集）
+        # 中央（新規・編集）
         mid_frame = ctk.CTkFrame(btn_frame)
         mid_frame.grid(row=0, column=1)
         new_btn = ctk.CTkButton(mid_frame, text="新規", width=80, command=self.handle_new_project)
@@ -76,7 +76,7 @@ class ProjectManagerDialog(ctk.CTkToplevel):
         edit_btn = ctk.CTkButton(mid_frame, text="編集", width=80, command=self.edit_project)
         edit_btn.pack(side="left", padx=5)
 
-        # 🔹 右寄せ（開く・キャンセル）
+        # 右寄せ（開く・キャンセル）
         open_btn = ctk.CTkButton(btn_frame, text="開く", width=80, command=self.open_project)
         open_btn.grid(row=0, column=2, sticky="e", padx=(10, 85))
         cancel_btn = ctk.CTkButton(btn_frame, text="キャンセル", width=80, command=self.destroy)

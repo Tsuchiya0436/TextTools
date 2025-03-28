@@ -4,7 +4,7 @@ from menu import create_menu
 
 def main():
     ctk.set_appearance_mode('light')
-    ctk.set_default_color_theme('blue')
+    ctk.set_default_color_theme('dark-blue')
 
     root = ctk.CTk()
     root.title('TextTools')

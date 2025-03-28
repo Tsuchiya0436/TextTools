@@ -10,7 +10,7 @@ def new_project(root, text_area, project_name_label, memo_label, total_words_lab
             text_area.insert("1.0", content)
             filename = os.path.basename(filepath)
             project_name_label.configure(text=filename)
-            memo_label.configure(text=memo)  # ← ここで表示！
+            memo_label.configure(text=memo)
 
             total_words_label.configure(text="総抽出語数（使用）：- (-)")
             unique_words_label.configure(text="異なり語数（使用）：- (-)")
